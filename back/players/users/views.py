@@ -4,6 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,3 +87,21 @@ class UserDetailView(APIView):
         return Response({
             'username': user.username,
         })
+
+class LogoutView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        response = Response({"message": "Logged out successfully"}, status=200)
+        print(response)
+        response.delete_cookie('access_token')
+        response.delete_cookie('BEARER')
+        response.delete_cookie('refresh_token')
+
+        return response
