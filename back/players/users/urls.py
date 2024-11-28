@@ -1,5 +1,5 @@
 from django.urls import path
-from players.views import UserRegistrationView, UserDetailView, CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView
+from .views import UserRegistrationView, UserDetailView, CookieTokenObtainPairView, CookieTokenRefreshView, LogoutView
 
 urlpatterns = [
     path('api/login/', CookieTokenObtainPairView.as_view(), name='token_obtain_pair'),
