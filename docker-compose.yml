@@ -1,0 +1,29 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/back.Dockerfile
+    container_name: backend
+    environment:
+      - IS_DOCKER=True
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./back:/app
+      - ./data:/app/data
+    env_file:
+      - .env
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/front.Dockerfile
+    container_name: frontend
+    environment:
+      - REACT_APP_BASE_API_URL=http://127.0.0.1:8000/api
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./front:/app
+    depends_on:
+      - backend

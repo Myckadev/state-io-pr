@@ -1,0 +1,7 @@
+.idea/
+front/.idea/
+front/node_modules
+back/venv/
+**/__pycache__/
+*.pyc
+data/db.sqlite3
