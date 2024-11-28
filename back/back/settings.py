@@ -22,7 +22,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
-    'players',
+    'users',
+    'levels',
+    'progress',
     'corsheaders',
 ]
 
@@ -35,8 +37,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    'players.users',
-    'players.levels',
 ]
 
 ROOT_URLCONF = 'back.urls'

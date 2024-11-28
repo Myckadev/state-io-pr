@@ -20,9 +20,6 @@ class CountryLevelListView(APIView):
         return Response(serializer.data)
 
 
-
-
-
 def initialize_progress_for_user(user):
     levels = [
         {"code": "FRA", "name": "France", "area": 551695, "difficulty": "EASY"},
