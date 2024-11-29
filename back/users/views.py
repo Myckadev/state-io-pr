@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from progress.utils import initialize_progress_for_user
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,7 +26,8 @@ class UserRegistrationView(APIView):
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            user = serializer.save()
+            initialize_progress_for_user(user)
             return Response({'message': 'User created'}, status=201)
         return Response(serializer.errors, status=400)
 
@@ -99,7 +101,6 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
         response = Response({"message": "Logged out successfully"}, status=200)
-        print(response)
         response.delete_cookie('access_token')
         response.delete_cookie('BEARER')
         response.delete_cookie('refresh_token')
