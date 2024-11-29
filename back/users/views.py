@@ -87,7 +87,9 @@ class UserDetailView(APIView):
     def get(self, request):
         user = request.user
         return Response({
+            'id': user.id,
             'username': user.username,
+            'email': user.email,
         })
 
 class LogoutView(APIView):
