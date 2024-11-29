@@ -22,7 +22,7 @@ export function LogoutButton() {
   };
 
   return (
-    <Button onClick={handleLogout} variant="outlined" color="secondary" disabled={isLoading}>
+    <Button onClick={handleLogout} variant="outlined" color="secondary" disabled={isLoading} sx={{ position: 'absolute', left: 8 }}>
       {isLoading ? 'Logging out...' : 'Logout'}
     </Button>
   );

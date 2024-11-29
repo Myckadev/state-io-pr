@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { LogoutButton } from "./features/players/components/LogoutButton";
 import { Register } from "./features/players/components/Register";
 import { Login } from "./features/players/components/Login";
+import {WorldMap} from "./features/worlds/components/WorldPage";
+import {Level} from "./features/levels/components/Level";
 
 export default function App() {
 
@@ -12,9 +14,10 @@ export default function App() {
         <LogoutButton />
       </nav>
       <Routes>
+        <Route path="/" element={<WorldMap />} />
+        <Route path="/level/:levelCode" element={<Level />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/world" element={<h1>JEU</h1>} />
       </Routes>
     </Router>
   );

@@ -17,13 +17,13 @@ export function Register() {
   const [registerPlayer, { isLoading }] = useRegisterPlayerMutation();
 
   if (me) {
-    navigate('/world');
+    navigate('/');
   }
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
       await registerPlayer(data).unwrap();
-      navigate('/world');
+      navigate('/');
     } catch (error) {
       alert('Error registering user');
     }
@@ -32,7 +32,7 @@ export function Register() {
   return (
     <Container maxWidth="xs">
       <Box mt={5}>
-        <Typography variant="h4" gutterBottom>Register</Typography>
+        <Typography variant="h4" gutterBottom>State.io | Register</Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <TextField label="Username" fullWidth margin="normal" {...register('username')} />
           <TextField label="Email" type="email" fullWidth margin="normal" {...register('email')} />
@@ -40,6 +40,7 @@ export function Register() {
           <Button type="submit" variant="contained" fullWidth disabled={isLoading}>
             {isLoading ? 'Registering...' : 'Register'}
           </Button>
+          <Typography variant="body1"> Déjà inscrit ? <span><a href="/login">Connecte toi !</a></span></Typography>
         </form>
       </Box>
     </Container>

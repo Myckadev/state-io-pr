@@ -16,13 +16,13 @@ export function Login() {
   const [login, { isLoading }] = useLoginPlayerMutation();
 
   if (me) {
-    navigate('/world');
+    navigate('/');
   }
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
       await login(data).unwrap();
-      navigate('/world');
+      navigate('/');
     } catch (error) {
       alert("Bah alors on est nul on se souvient pas de son password ou identifiant  ? :/");
     }
@@ -31,13 +31,14 @@ export function Login() {
   return (
     <Container maxWidth="xs">
       <Box mt={5}>
-        <Typography variant="h4" gutterBottom>Login</Typography>
+        <Typography variant="h4" gutterBottom>State.io | Login</Typography>
         <form onSubmit={handleSubmit(onSubmit)}>
           <TextField label="Username" fullWidth margin="normal" {...register('username')} />
           <TextField label="Password" type="password" fullWidth margin="normal" {...register('password')} />
           <Button type="submit" variant="contained" fullWidth disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
           </Button>
+          <Typography variant="body1"> Pas encore de compte ? <span><a href="/register">Inscris-toi !</a></span></Typography>
         </form>
       </Box>
     </Container>

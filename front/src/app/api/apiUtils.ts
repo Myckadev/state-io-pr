@@ -24,7 +24,7 @@ export const baseQueryWithReauth = async (args: any, api: any, extraOptions: any
 
       try {
         // Tenter de rafraîchir le token
-        const refreshResult = await baseQuery('/refresh', api, extraOptions);
+        const refreshResult = await baseQuery({ url: '/auth/token/refresh/', method: 'POST' }, api, extraOptions);
         if (refreshResult.data) {
           // Si le refresh réussit, réessayer la requête d'origine
           result = await baseQuery(args, api, extraOptions);
