@@ -26,8 +26,6 @@ export const WorldMap = () => {
       alert('Ce niveau est verrouillé.');
       return;
     }
-    // Simuler un zoom (changer l'état de la carte pour afficher seulement ce pays)
-    alert(`Vous avez sélectionné le niveau : ${levelCode}`);
   };
 
   if (isLoading) return <p>Chargement...</p>;
