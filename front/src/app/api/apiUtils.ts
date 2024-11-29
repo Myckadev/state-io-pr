@@ -9,6 +9,7 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     return headers;
   },
+  credentials: 'include',
 });
 
 export const baseQueryWithReauth = async (args: any, api: any, extraOptions: any) => {

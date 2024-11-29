@@ -15,6 +15,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'trop_marrant_django')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
+CORS_ALLOW_CREDENTIALS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
 
 INSTALLED_APPS = [
     'django.contrib.auth',

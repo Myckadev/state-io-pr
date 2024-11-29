@@ -1,4 +1,4 @@
-import {baseApi} from "../../app/api/baseApi";
+import { baseApi } from '../../app/api/baseApi';
 
 type Player = {
   id: string;
@@ -16,16 +16,24 @@ type LoginPlayer = Pick<Player, 'username'> & { password: string };
 export const playerApiSlice = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     registerPlayer: builder.mutation<RegisterResponse, RegisterPlayer>({
-      query: () => '/auth/register',
+      query: (body) => ({
+        url: '/auth/register/',
+        method: 'POST',
+        body: body
+      }),
     }),
     refreshPlayerTokens: builder.mutation<void, void>({
-      query: () => '/auth/token/refresh',
+      query: () => '/auth/token/refresh/',
     }),
     loginPlayer: builder.mutation<void, LoginPlayer>({
-      query: () => '/auth/login',
+      query: (body) => ({
+        url: '/auth/login/',
+        method: 'POST',
+        body: body
+      }),
     }),
     logoutPlayer: builder.mutation<void, void>({
-      query: () => '/auth/logout',
+      query: () => '/auth/logout/',
     }),
     getMe: builder.query<Player, void>({
       query: () => '/auth/user/me',

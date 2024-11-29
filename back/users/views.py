@@ -44,16 +44,16 @@ class CookieTokenObtainPairView(TokenObtainPairView):
                 key='BEARER',
                 value=access_token,
                 httponly=True,
-                secure=False,
-                samesite='Lax',
+                secure=True,
+                samesite='None',
             )
         if refresh_token:
             response.set_cookie(
                 key='refresh_token',
                 value=refresh_token,
                 httponly=True,
-                secure=False,
-                samesite='strict',
+                secure=True,
+                samesite='None',
             )
 
         response.data.pop('access', None)
@@ -73,8 +73,8 @@ class CookieTokenRefreshView(TokenRefreshView):
                 key='BEARER',
                 value=access_token,
                 httponly=True,
-                secure=False,
-                samesite='strict',
+                secure=True,
+                samesite='None',
             )
 
         response.data.pop('access', None)
