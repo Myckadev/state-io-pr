@@ -5,6 +5,7 @@ import { Register } from "./features/players/components/Register";
 import { Login } from "./features/players/components/Login";
 
 export default function App() {
+
   return (
     <Router>
       <nav style={{ marginBottom: '1rem' }}>
@@ -13,7 +14,7 @@ export default function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        {/*<Route path="/world" element={<World />} />*/}
+        <Route path="/world" element={<h1>JEU</h1>} />
       </Routes>
     </Router>
   );

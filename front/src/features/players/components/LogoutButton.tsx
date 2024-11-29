@@ -1,14 +1,21 @@
 import React from 'react';
 import { Button } from '@mui/material';
-import { useLogoutPlayerMutation } from '../playerService';
+import {useGetMeQuery, useLogoutPlayerMutation} from '../playerService';
+import {useNavigate} from "react-router-dom";
 
 export function LogoutButton() {
+  const { data: me } = useGetMeQuery();
+  const navigate = useNavigate();
   const [logout, { isLoading }] = useLogoutPlayerMutation();
+
+  if (!me) {
+    return null;
+  }
 
   const handleLogout = async () => {
     try {
       await logout().unwrap();
-      alert('Logged out successfully');
+      navigate('/login');
     } catch (error) {
       alert('Error logging out');
     }

@@ -33,7 +33,10 @@ export const playerApiSlice = baseApi.injectEndpoints({
       }),
     }),
     logoutPlayer: builder.mutation<void, void>({
-      query: () => '/auth/logout/',
+      query: () => ({
+        url: '/auth/logout/',
+        method: 'POST',
+      }),
     }),
     getMe: builder.query<Player, void>({
       query: () => '/auth/user/me',

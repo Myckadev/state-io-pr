@@ -1,7 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Typography, Box, Container } from '@mui/material';
-import { useRegisterPlayerMutation } from '../playerService';
+import {useGetMeQuery, useRegisterPlayerMutation} from '../playerService';
+import {useNavigate} from "react-router-dom";
 
 interface RegisterFormInputs {
   username: string;
@@ -10,13 +11,19 @@ interface RegisterFormInputs {
 }
 
 export function Register() {
+  const { data: me } = useGetMeQuery();
+  const navigate = useNavigate();
   const { register, handleSubmit } = useForm<RegisterFormInputs>();
   const [registerPlayer, { isLoading }] = useRegisterPlayerMutation();
+
+  if (me) {
+    navigate('/world');
+  }
 
   const onSubmit = async (data: RegisterFormInputs) => {
     try {
       await registerPlayer(data).unwrap();
-      alert('User registered successfully');
+      navigate('/world');
     } catch (error) {
       alert('Error registering user');
     }

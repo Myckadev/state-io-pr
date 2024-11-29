@@ -7,6 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from progress.utils import initialize_progress_for_user
+from datetime import datetime, timedelta
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
@@ -93,18 +94,28 @@ class UserDetailView(APIView):
         })
 
 class LogoutView(APIView):
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-
+        # Blacklist le refresh token
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except Exception as e:
+                print(f"Error blacklisting refresh token: {e}")
+
         response = Response({"message": "Logged out successfully"}, status=200)
-        response.delete_cookie('access_token')
-        response.delete_cookie('BEARER')
-        response.delete_cookie('refresh_token')
+        cookies_to_clear = ['refresh_token', 'BEARER']
+        for cookie in cookies_to_clear:
+            response.set_cookie(
+                key=cookie,
+                value='',
+                expires=datetime.utcnow() - timedelta(days=1),  # Expiration dans le passé
+                httponly=True,
+                secure=True,
+                samesite='None'
+            )
 
         return response

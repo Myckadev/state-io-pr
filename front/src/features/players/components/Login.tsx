@@ -1,7 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { TextField, Button, Typography, Box, Container } from '@mui/material';
-import { useLoginPlayerMutation } from '../playerService';
+import { useGetMeQuery, useLoginPlayerMutation } from '../playerService';
+import {useNavigate} from "react-router-dom";
 
 interface LoginFormInputs {
   username: string;
@@ -9,15 +10,21 @@ interface LoginFormInputs {
 }
 
 export function Login() {
+  const { data: me } = useGetMeQuery();
+  const navigate = useNavigate();
   const { register, handleSubmit } = useForm<LoginFormInputs>();
   const [login, { isLoading }] = useLoginPlayerMutation();
+
+  if (me) {
+    navigate('/world');
+  }
 
   const onSubmit = async (data: LoginFormInputs) => {
     try {
       await login(data).unwrap();
-      alert('Logged in successfully');
+      navigate('/world');
     } catch (error) {
-      alert('Error logging in');
+      alert("Bah alors on est nul on se souvient pas de son password ou identifiant  ? :/");
     }
   };
 
