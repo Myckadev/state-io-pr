@@ -10,7 +10,10 @@ export const Level = () => {
   const [completeLevel] = useCompleteLevelMutation();
 
   const [bases, setBases] = useState<any[]>([]);
+  const [transitingUnits, setTransitingUnits] = useState<any[]>([]);
   const [selectedBase, setSelectedBase] = useState<number | null>(null);
+  const [currentTarget, setCurrentTarget] = useState<number | null>(null);
+  const [activeActions, setActiveActions] = useState<any[]>([]);
 
   useEffect(() => {
     if (!loadingMe && !me) {
@@ -41,26 +44,69 @@ export const Level = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setBases((prevBases) =>
-        prevBases.map((base) =>
-          base.owner ? { ...base, units: base.units + 5 } : base
-        )
+        prevBases.map((base) => {
+          if (base.owner) {
+            // Les bases capturées démarrent avec 5 unités minimum
+            const newUnits = Math.max(base.units, 5) + 5;
+            return { ...base, units: newUnits };
+          }
+          return base;
+        })
       );
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
+  const isBaseActive = (baseId: number) => {
+    return activeActions.some((action) => action.sourceId === baseId);
+  };
+
+
   const handleBaseClick = (baseId: number) => {
-    if (selectedBase === null) {
-      const base = bases.find((b) => b.id === baseId);
-      if (base?.owner === 'player') {
-        setSelectedBase(baseId);
+    const base = bases.find((b) => b.id === baseId);
+
+    if (base?.owner === 'player') {
+      if (activeActions.some((action) => action.sourceId === baseId)) {
+        // Supprime l'action si déjà active
+        setActiveActions((actions) =>
+          actions.filter((action) => action.sourceId !== baseId)
+        );
+      } else {
+        // Ajoute une nouvelle action pour cette base
+        setActiveActions((actions) => [...actions, { sourceId: baseId, targetId: null }]);
       }
     } else {
-      sendUnits(selectedBase, baseId);
-      setSelectedBase(null);
+      // Définit une cible pour l'action en cours
+      setActiveActions((actions) =>
+        actions.map((action) =>
+          action.targetId === null ? { ...action, targetId: baseId } : action
+        )
+      );
     }
   };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      activeActions.forEach((action) => {
+        if (action.sourceId && action.targetId) {
+          sendUnits(action.sourceId, action.targetId);
+        }
+      });
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [activeActions]);
+
+  useEffect(() => {
+    if (selectedBase !== null && currentTarget !== null) {
+      const interval = setInterval(() => {
+        sendUnits(selectedBase, currentTarget);
+      }, 500);
+
+      return () => clearInterval(interval);
+    }
+  }, [selectedBase, currentTarget]);
 
   const sendUnits = (sourceId: number, targetId: number) => {
     setBases((prevBases) => {
@@ -71,60 +117,103 @@ export const Level = () => {
         return prevBases;
       }
 
-      const unitsToSend = Math.min(sourceBase.units, 10);
-      const updatedBases = prevBases.map((base) => {
-        if (base.id === sourceId) {
-          return { ...base, units: base.units - unitsToSend };
-        }
+      const unitsToSend = Math.min(sourceBase.units - 5, 10);
+      if (unitsToSend <= 0) return prevBases;
 
-        if (base.id === targetId) {
-          if (base.owner === null || base.units < unitsToSend) {
-            return {
-              ...base,
-              units: Math.max(0, base.units - unitsToSend),
-              owner: base.units <= unitsToSend ? 'player' : base.owner,
-            };
-          }
+      setTransitingUnits((prevTransitingUnits) => [
+        ...prevTransitingUnits,
+        {
+          id: `${sourceId}-${targetId}-${Date.now()}`,
+          source: sourceBase,
+          target: targetBase,
+          progress: 0,
+          units: unitsToSend,
+        },
+      ]);
 
-          return {
-            ...base,
-            units: base.units - unitsToSend,
-          };
-        }
-
-        return base;
-      });
-
-      return updatedBases;
+      return prevBases.map((base) =>
+        base.id === sourceId ? { ...base, units: base.units - unitsToSend } : base
+      );
     });
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTransitingUnits((prevTransitingUnits) =>
+        prevTransitingUnits
+          .map((unit) => {
+            const newProgress = unit.progress + 5;
+            if (newProgress >= 100) {
+              handleUnitArrival(unit);
+              return null; // Supprime l'unité après son arrivée
+            }
+            return { ...unit, progress: newProgress };
+          })
+          .filter(Boolean) // Supprime les entrées nulles (unités arrivées)
+      );
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  const handleUnitArrival = (unit: any) => {
+    setBases((prevBases) =>
+      prevBases.map((base) => {
+        if (base.id === unit.target.id) {
+          if (unit.source.owner === 'player') {
+            if (base.owner === null || base.units < unit.units) {
+              return {
+                ...base,
+                units: Math.max(0, base.units - unit.units),
+                owner: base.units <= unit.units ? 'player' : base.owner,
+              };
+            }
+            return { ...base, units: base.units - unit.units };
+          } else if (unit.source.owner === 'enemy') {
+            if (base.owner === null || base.units < unit.units) {
+              return {
+                ...base,
+                units: Math.max(0, base.units - unit.units),
+                owner: base.units <= unit.units ? 'enemy' : base.owner,
+              };
+            }
+            return { ...base, units: base.units - unit.units };
+          }
+        }
+        return base;
+      })
+    );
   };
 
   const handleEnemyTurn = () => {
     setBases((prevBases) => {
       const enemyBases = prevBases.filter((base) => base.owner === 'enemy');
-      const neutralBases = prevBases.filter((base) => base.owner === null);
-      const playerBases = prevBases.filter((base) => base.owner === 'player');
-
-      if (enemyBases.length > 0 && neutralBases.length > 0) {
+      const targetableBases = prevBases.filter(
+        (base) => base.owner === null || base.owner === 'player'
+      );
+      if (enemyBases.length > 0 && targetableBases.length > 0) {
         const sourceBase = enemyBases[getRandomInt(0, enemyBases.length - 1)];
-        const targetBase = neutralBases[getRandomInt(0, neutralBases.length - 1)];
+        const targetBase = targetableBases[getRandomInt(0, targetableBases.length - 1)];
 
         const unitsToSend = Math.min(sourceBase.units, 10);
-        return prevBases.map((base) => {
-          if (base.id === sourceBase.id) {
-            return { ...base, units: base.units - unitsToSend };
-          }
-          if (base.id === targetBase.id) {
-            return {
-              ...base,
-              units: base.units + unitsToSend,
-              owner: 'enemy',
-            };
-          }
-          return base;
-        });
-      }
+        setTransitingUnits((prevTransitingUnits) => [
+          ...prevTransitingUnits,
+          {
+            id: `${sourceBase.id}-${targetBase.id}-${Date.now()}`,
+            source: sourceBase,
+            target: targetBase,
+            progress: 0,
+            units: unitsToSend,
+          },
+        ]);
 
+        return prevBases.map((base) =>
+          base.id === sourceBase.id
+            ? { ...base, units: base.units - unitsToSend }
+            : base
+        );
+      }
       return prevBases;
     });
   };
@@ -138,18 +227,13 @@ export const Level = () => {
   }, []);
 
   useEffect(() => {
-    // Condition de victoire : toutes les bases doivent être contrôlées par le joueur
     if (bases.length > 0 && bases.every((base) => base.owner === 'player')) {
-      alert('Vous avez gagné !');
       handleCompleteLevel();
-    }
-    // Condition de défaite : toutes les bases doivent être contrôlées par l'adversaire
-    else if (bases.length > 0 && bases.every((base) => base.owner === 'enemy')) {
+    } else if (bases.length > 0 && bases.every((base) => base.owner === 'enemy')) {
       alert('Vous avez perdu...');
       navigate('/');
     }
   }, [bases]);
-
 
   const handleCompleteLevel = async () => {
     try {
@@ -175,6 +259,7 @@ export const Level = () => {
               width: '50px',
               height: '50px',
               borderRadius: '50%',
+              border: isBaseActive(base.id) ? '3px solid blue' : 'none', // Bordure pour les bases actives
               backgroundColor:
                 base.owner === 'player'
                   ? 'green'
@@ -193,6 +278,29 @@ export const Level = () => {
             {base.units}
           </div>
         ))}
+
+        {transitingUnits.map((unit) => {
+          const source = unit.source.position;
+          const target = unit.target.position;
+          const x = source.x + (target.x - source.x) * (unit.progress / 100);
+          const y = source.y + (target.y - source.y) * (unit.progress / 100);
+
+          return (
+            <div
+              key={unit.id}
+              style={{
+                position: 'absolute',
+                top: `${y}%`,
+                left: `${x}%`,
+                transform: 'translate(-50%, -50%)',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: unit.source.owner === 'player' ? 'blue' : 'purple',
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -208,3 +316,5 @@ const getDifficultyFromLevel = (levelCode: string) => {
 const getRandomInt = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
+
+
